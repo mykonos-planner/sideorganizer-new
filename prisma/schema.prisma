@@ -1,0 +1,80 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+  IMPOSSIBLE
+}
+
+model User {
+  id               String        @id @default(cuid())
+  email            String        @unique
+  name             String?
+  password         String
+  events           Event[]
+  createdSideQuests SideQuest[]   @relation("Creator")
+  progress         UserProgress[]
+  createdAt        DateTime      @default(now())
+}
+
+model SideQuest {
+  id            String           @id @default(cuid())
+  title         String
+  description   String
+  difficulty    Difficulty       @default(MEDIUM)
+  isRepeatable  Boolean          @default(false)
+  maxRepeats    Int?
+  createdById   String
+  creator       User             @relation("Creator", fields: [createdById], references: [id])
+  steps         SideQuestStep[]
+  progress      UserProgress[]
+  createdAt     DateTime         @default(now())
+}
+
+model SideQuestStep {
+  id            String          @id @default(cuid())
+  sideQuestId   String
+  sideQuest     SideQuest       @relation(fields: [sideQuestId], references: [id])
+  title         String
+  description   String?
+  order         Int
+  events        Event[]
+}
+
+model Event {
+  id              String        @id @default(cuid())
+  userId          String
+  user            User          @relation(fields: [userId], references: [id])
+  title           String
+  description     String?
+  location        String?
+  lat             Float?
+  lng             Float?
+  startDate       DateTime
+  endDate         DateTime
+  isRecurring     Boolean       @default(false)
+  recurrenceRule  String?
+  sideQuestStepId String?
+  sideQuestStep   SideQuestStep? @relation(fields: [sideQuestStepId], references: [id])
+  createdAt       DateTime      @default(now())
+}
+
+model UserProgress {
+  id              String        @id @default(cuid())
+  userId          String
+  user            User          @relation(fields: [userId], references: [id])
+  sideQuestId     String
+  sideQuest       SideQuest     @relation(fields: [sideQuestId], references: [id])
+  completedStepIds String[]
+  repeatsDone     Int           @default(0)
+  isCompleted     Boolean       @default(false)
+  updatedAt       DateTime      @updatedAt
+}
