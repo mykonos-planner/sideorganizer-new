@@ -1,3 +1,8 @@
+'use client'
+
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 import Link from 'next/link'
 
 const fakeQuests = [
